@@ -1,0 +1,32 @@
+[project]
+name = "tus-asgi"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "aiofiles>=24.1.0",
+    "fastapi[standard]>=0.116.1",
+    "httpx[http2]>=0.28.1",
+    "orjson>=3.11.1",
+    "rich>=14.1.0",
+    "starlette[full]>=0.47.2",
+    "structlog>=25.4.0",
+    "typer>=0.16.0",
+    "uvicorn[standard]>=0.35.0",
+]
+
+[project.scripts]
+tus-asgi = "tus_asgi:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "mypy>=1.17.1",
+    "pytest>=8.4.1",
+    "pytest-asyncio>=1.1.0",
+    "ruff>=0.12.7",
+]
