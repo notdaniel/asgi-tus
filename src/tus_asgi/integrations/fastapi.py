@@ -37,7 +37,7 @@ class TusFastAPIRouter:
         self.router.add_api_route(
             "/{upload_id}",
             self._handle_upload,
-            methods=["HEAD", "PATCH", "DELETE"],
+            methods=["HEAD", "PATCH", "DELETE", "OPTIONS"],
             response_class=FastAPIResponse,
         )
 

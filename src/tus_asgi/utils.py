@@ -8,6 +8,9 @@ import base64
 from typing import Dict, Optional, Tuple, Any
 from datetime import datetime, timezone
 import orjson
+import structlog
+
+logger = structlog.get_logger()
 
 
 def validate_upload_id(upload_id: str) -> bool:

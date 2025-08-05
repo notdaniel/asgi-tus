@@ -26,6 +26,7 @@ class TusError(Exception):
 
 class TusProtocolError(TusError):
     """Tus protocol validation error."""
+
     ...
 
 
@@ -50,9 +51,13 @@ class TusASGIApp:
         try:
             await self._handle_request(scope, receive, send)
         except TusError as e:
-            await self._send_tus_error(send, e)
+            await self._send_tus_error(send, e, scope)
         except Exception:
-            await self._send_error(send, 500, "Internal Server Error")
+            # Add CORS headers to 500 errors if enabled
+            headers = {}
+            if self.config.cors_enabled:
+                headers.update(self._get_cors_headers(scope))
+            await self._send_response(send, 500, headers, b"Internal Server Error")
 
     async def _handle_request(self, scope: dict[str, Any], receive, send):
         """Handle HTTP request."""
@@ -89,8 +94,12 @@ class TusASGIApp:
             await self._handle_patch_request(upload_id, scope, receive, send)
         elif method == "DELETE":
             await self._handle_delete_request(upload_id, scope, receive, send)
+        elif method == "OPTIONS":
+            await self._handle_upload_options_request(upload_id, scope, receive, send)
         else:
-            raise TusError(405, "Method Not Allowed", {"Allow": "HEAD, PATCH, DELETE"})
+            raise TusError(
+                405, "Method Not Allowed", {"Allow": "HEAD, PATCH, DELETE, OPTIONS"}
+            )
 
     async def _handle_options_request(self, scope: dict[str, Any], receive, send):
         """Handle OPTIONS request for server capabilities."""
@@ -404,6 +413,20 @@ class TusASGIApp:
 
         await self._send_response(send, 201, response_headers)
 
+    async def _handle_upload_options_request(
+        self, upload_id: str, scope: dict[str, Any], receive, send
+    ):
+        """Handle OPTIONS request to upload resource for CORS preflight."""
+        headers = {
+            "Tus-Resumable": self.config.version,
+        }
+
+        # Add CORS headers if enabled
+        if self.config.cors_enabled:
+            headers.update(self._get_cors_headers(scope))
+
+        await self._send_response(send, 204, headers)
+
     async def _handle_delete_request(
         self, upload_id: str, scope: dict[str, Any], receive, send
     ):
@@ -591,10 +614,17 @@ class TusASGIApp:
         """Send error response."""
         await self._send_response(send, status_code, body=message.encode())
 
-    async def _send_tus_error(self, send, error: TusError):
+    async def _send_tus_error(
+        self, send, error: TusError, scope: dict[str, Any] = None
+    ):
         """Send tus protocol error response."""
         headers = {"Tus-Resumable": self.config.version}
         headers.update(error.headers)
+
+        # Add CORS headers if enabled and scope is available
+        if self.config.cors_enabled and scope:
+            headers.update(self._get_cors_headers(scope))
+
         await self._send_response(
             send, error.status_code, headers, error.message.encode()
         )

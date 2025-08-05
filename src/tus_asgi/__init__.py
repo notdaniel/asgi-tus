@@ -17,12 +17,12 @@ from .integrations.starlette import TusStarletteApp, create_tus_app, TusMount
 __version__ = "0.1.0"
 __all__ = [
     "TusASGIApp",
-    "TusConfig", 
+    "TusConfig",
     "StorageBackend",
     "FileStorage",
     "TusFastAPIRouter",
     "create_tus_router",
-    "TusStarletteApp", 
+    "TusStarletteApp",
     "create_tus_app",
     "TusMount",
 ]
