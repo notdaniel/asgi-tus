@@ -1,5 +1,5 @@
 """
-Starlette integration for tus-asgi.
+Starlette integration for asgi-tus.
 """
 
 from typing import Optional, List, Dict, Any, Tuple, Union, Type
@@ -11,7 +11,7 @@ from starlette.responses import Response
 from starlette.middleware import Middleware
 from starlette.types import ASGIApp
 
-from ..core import TusASGIApp
+from ..core import ASGITusApp
 from ..config import TusConfig
 from ..storage import StorageBackend
 
@@ -29,7 +29,7 @@ class TusStarletteApp:
     ) -> None:
         self.storage = storage
         self.config = config or TusConfig()
-        self.tus_app = TusASGIApp(storage, self.config)
+        self.tus_app = ASGITusApp(storage, self.config)
 
         # Create Starlette app
         middleware_list: List[Middleware] = []
@@ -145,7 +145,7 @@ def create_tus_app(
     Example:
         ```python
         from starlette.middleware.cors import CORSMiddleware
-        from tus_asgi import FileStorage, create_tus_app
+        from asgi_tus import FileStorage, create_tus_app
 
         storage = FileStorage("/tmp/uploads")
         middleware = [CORSMiddleware(allow_origins=["*"])]
@@ -168,7 +168,7 @@ class TusMount:
         self.storage = storage
         self.config = config or TusConfig()
         self.config.upload_path = ""  # Reset since we're mounting at a path
-        self.tus_app = TusASGIApp(storage, self.config)
+        self.tus_app = ASGITusApp(storage, self.config)
         self.path = path
 
     def get_mount(self) -> Mount:
@@ -178,7 +178,7 @@ class TusMount:
             ```python
             from starlette.applications import Starlette
             from starlette.routing import Mount, Route
-            from tus_asgi import FileStorage, TusMount
+            from asgi_tus import FileStorage, TusMount
 
             storage = FileStorage("/tmp/uploads")
             tus_mount = TusMount(storage, path="/uploads")

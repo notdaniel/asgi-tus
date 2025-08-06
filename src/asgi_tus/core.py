@@ -36,7 +36,7 @@ class TusProtocolError(TusError):
     ...
 
 
-class TusASGIApp:
+class ASGITusApp:
     """Main tus ASGI application."""
 
     def __init__(

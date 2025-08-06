@@ -1,5 +1,5 @@
 """
-Storage backend interface and implementations for tus-asgi.
+Storage backend interface and implementations for asgi-tus.
 """
 
 import uuid

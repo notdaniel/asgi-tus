@@ -1,5 +1,5 @@
 """
-tus-asgi: A Python ASGI implementation of the tus resumable upload protocol.
+asgi-tus: A Python ASGI implementation of the tus resumable upload protocol.
 
 This package provides:
 - Core tus protocol implementation
@@ -8,13 +8,13 @@ This package provides:
 - Support for all standard tus extensions
 """
 
-from .core import TusASGIApp
+from .core import ASGITusApp
 from .config import TusConfig
 from .storage import StorageBackend, FileStorage
 
 __version__ = "0.1.0"
 __all__ = [
-    "TusASGIApp",
+    "ASGITusApp",
     "TusConfig",
     "StorageBackend",
     "FileStorage",

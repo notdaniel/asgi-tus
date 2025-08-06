@@ -1,5 +1,5 @@
 """
-Example applications showing how to use tus-asgi.
+Example applications showing how to use asgi-tus.
 """
 
 from datetime import timedelta
@@ -10,15 +10,15 @@ from starlette.middleware import Middleware
 
 from .config import TusConfig
 from .storage import FileStorage
-from .core import TusASGIApp
+from .core import ASGITusApp
 
 
-def create_basic_asgi_app(upload_dir: str = "/tmp/tus-uploads") -> TusASGIApp:
+def create_basic_asgi_app(upload_dir: str = "/tmp/tus-uploads") -> ASGITusApp:
     """Create a basic tus ASGI application.
 
     Example usage with uvicorn:
         ```python
-        from tus_asgi.examples import create_basic_asgi_app
+        from asgi_tus.examples import create_basic_asgi_app
 
         app = create_basic_asgi_app("/tmp/uploads")
 
@@ -31,7 +31,7 @@ def create_basic_asgi_app(upload_dir: str = "/tmp/tus-uploads") -> TusASGIApp:
         upload_expires=timedelta(hours=24),
         cors_enabled=True,
     )
-    return TusASGIApp(storage, config)
+    return ASGITusApp(storage, config)
 
 
 def create_fastapi_app(upload_dir: str = "/tmp/tus-uploads") -> Any:
@@ -39,7 +39,7 @@ def create_fastapi_app(upload_dir: str = "/tmp/tus-uploads") -> Any:
 
     Example usage:
         ```python
-        from tus_asgi.examples import create_fastapi_app
+        from asgi_tus.examples import create_fastapi_app
 
         app = create_fastapi_app("/tmp/uploads")
 
@@ -88,7 +88,7 @@ def create_starlette_app(upload_dir: str = "/tmp/tus-uploads") -> Any:
 
     Example usage:
         ```python
-        from tus_asgi.examples import create_starlette_app
+        from asgi_tus.examples import create_starlette_app
 
         app = create_starlette_app("/tmp/uploads")
 
@@ -160,7 +160,7 @@ def create_production_fastapi_app(
 
     Example usage:
         ```python
-        from tus_asgi.examples import create_production_fastapi_app
+        from asgi_tus.examples import create_production_fastapi_app
 
         app = create_production_fastapi_app(
             upload_dir="/var/uploads",

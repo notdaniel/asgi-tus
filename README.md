@@ -1,4 +1,4 @@
-# tus-asgi
+# asgi-tus
 
 A Python ASGI implementation of the [tus resumable upload protocol](https://tus.io/protocols/resumable-upload/).
 
@@ -15,27 +15,27 @@ A Python ASGI implementation of the [tus resumable upload protocol](https://tus.
 
 **Core functionality (ASGI app only):**
 ```bash
-pip install tus-asgi
+pip install asgi-tus
 ```
 
 **With FastAPI support:**
 ```bash
-pip install "tus-asgi[fastapi]"
+pip install "asgi-tus[fastapi]"
 ```
 
 **With Starlette support:**
 ```bash
-pip install "tus-asgi[starlette]"
+pip install "asgi-tus[starlette]"
 ```
 
 **With development server:**
 ```bash
-pip install "tus-asgi[server]"
+pip install "asgi-tus[server]"
 ```
 
 **With everything:**
 ```bash
-pip install "tus-asgi[all]"
+pip install "asgi-tus[all]"
 ```
 
 ## Quick Start
@@ -45,7 +45,7 @@ pip install "tus-asgi[all]"
 *Core functionality with minimal dependencies:*
 
 ```python
-from tus_asgi import TusASGIApp, FileStorage, TusConfig
+from asgi_tus import ASGITusApp, FileStorage, TusConfig
 from datetime import timedelta
 
 # Configure storage and tus settings
@@ -57,7 +57,7 @@ config = TusConfig(
 )
 
 # Create ASGI app
-app = TusASGIApp(storage, config)
+app = ASGITusApp(storage, config)
 
 # Run with any ASGI server: uvicorn, hypercorn, etc.
 # uvicorn main:app --host 0.0.0.0 --port 8000
@@ -65,11 +65,11 @@ app = TusASGIApp(storage, config)
 
 ### FastAPI
 
-*Requires: `pip install "tus-asgi[fastapi]"`*
+*Requires: `pip install "asgi-tus[fastapi]"`*
 
 ```python
 from fastapi import FastAPI
-from tus_asgi import FileStorage, TusConfig, create_tus_router
+from asgi_tus import FileStorage, TusConfig, create_tus_router
 from datetime import timedelta
 
 app = FastAPI()
@@ -91,12 +91,12 @@ app.include_router(tus_router)
 
 ### Starlette
 
-*Requires: `pip install "tus-asgi[starlette]"`*
+*Requires: `pip install "asgi-tus[starlette]"`*
 
 ```python
 from starlette.applications import Starlette
 from starlette.routing import Route
-from tus_asgi import FileStorage, TusConfig, TusMount
+from asgi_tus import FileStorage, TusConfig, TusMount
 from datetime import timedelta
 
 storage = FileStorage("/tmp/uploads")
@@ -149,7 +149,7 @@ upload.start();
 ## Configuration
 
 ```python
-from tus_asgi import TusConfig
+from asgi_tus import TusConfig
 from datetime import timedelta
 
 config = TusConfig(

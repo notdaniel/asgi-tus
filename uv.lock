@@ -735,7 +735,7 @@ wheels = [
 ]
 
 [[package]]
-name = "tus-asgi"
+name = "asgi-tus"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
@@ -777,7 +777,7 @@ requires-dist = [
     { name = "orjson", specifier = ">=3.11.1" },
     { name = "starlette", extras = ["full"], marker = "extra == 'starlette'", specifier = ">=0.47.2" },
     { name = "structlog", specifier = ">=25.4.0" },
-    { name = "tus-asgi", extras = ["fastapi", "starlette", "server"], marker = "extra == 'all'" },
+    { name = "asgi-tus", extras = ["fastapi", "starlette", "server"], marker = "extra == 'all'" },
     { name = "uvicorn", extras = ["standard"], marker = "extra == 'server'", specifier = ">=0.35.0" },
 ]
 provides-extras = ["fastapi", "starlette", "server", "all"]

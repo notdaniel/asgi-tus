@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock
 
 import pytest_asyncio
 
-from ..core import TusASGIApp
+from ..core import ASGITusApp
 from ..config import TusConfig
 from ..storage import FileStorage
 
@@ -51,13 +51,13 @@ def full_config():
 @pytest_asyncio.fixture
 async def tus_app(temp_storage, tus_config):
     """Create basic tus ASGI app for testing."""
-    return TusASGIApp(temp_storage, tus_config)
+    return ASGITusApp(temp_storage, tus_config)
 
 
 @pytest_asyncio.fixture
 async def full_tus_app(temp_storage, full_config):
     """Create full-featured tus ASGI app for testing."""
-    return TusASGIApp(temp_storage, full_config)
+    return ASGITusApp(temp_storage, full_config)
 
 
 async def call_asgi_app(app, method="GET", path="/files", headers=None, body=b""):

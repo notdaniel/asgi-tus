@@ -1,5 +1,5 @@
 """
-Configuration settings for tus-asgi server.
+Configuration settings for asgi-tus server.
 """
 
 from dataclasses import dataclass, field

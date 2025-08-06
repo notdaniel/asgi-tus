@@ -1,5 +1,5 @@
 """
-Utility functions for tus-asgi.
+Utility functions for asgi-tus.
 """
 
 import re

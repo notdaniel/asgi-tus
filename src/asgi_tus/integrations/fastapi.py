@@ -1,12 +1,12 @@
 """
-FastAPI integration for tus-asgi.
+FastAPI integration for asgi-tus.
 """
 
 from typing import Optional, List, Dict, Any, Tuple, Callable, Awaitable
 from fastapi import APIRouter, Request, Response
 from fastapi.responses import Response as FastAPIResponse
 
-from ..core import TusASGIApp
+from ..core import ASGITusApp
 from ..config import TusConfig
 from ..storage import StorageBackend
 
@@ -23,7 +23,7 @@ class TusFastAPIRouter:
         self.storage = storage
         self.config = config or TusConfig()
         self.config.upload_path = prefix
-        self.tus_app = TusASGIApp(storage, self.config)
+        self.tus_app = ASGITusApp(storage, self.config)
         self.router = APIRouter(prefix=prefix)
 
         # Add routes
@@ -136,7 +136,7 @@ def create_tus_router(
     Example:
         ```python
         from fastapi import FastAPI
-        from tus_asgi import FileStorage, create_tus_router
+        from asgi_tus import FileStorage, create_tus_router
 
         app = FastAPI()
         storage = FileStorage("/tmp/uploads")

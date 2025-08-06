@@ -1,5 +1,5 @@
 [project]
-name = "tus-asgi"
+name = "asgi-tus"
 version = "0.1.0"
 description = "A Python ASGI implementation of the tus resumable upload protocol with FastAPI and Starlette integrations."
 authors = [
@@ -25,19 +25,19 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/notdaniel/tus-asgi"
-Repository = "https://github.com/notdaniel/tus-asgi"
-Issues = "https://github.com/notdaniel/tus-asgi/issues"
-Documentation = "https://github.com/notdaniel/tus-asgi#readme"
+Homepage = "https://github.com/notdaniel/asgi-tus"
+Repository = "https://github.com/notdaniel/asgi-tus"
+Issues = "https://github.com/notdaniel/asgi-tus/issues"
+Documentation = "https://github.com/notdaniel/asgi-tus#readme"
 
 [project.optional-dependencies]
 fastapi = ["fastapi[standard]>=0.116.1"]
 starlette = ["starlette[full]>=0.47.2"]
 server = ["uvicorn[standard]>=0.35.0"]
-all = ["tus-asgi[fastapi,starlette,server]"]
+all = ["asgi-tus[fastapi,starlette,server]"]
 
 [project.scripts]
-tus-asgi = "tus_asgi:main"
+asgi-tus = "asgi_tus:main"
 
 [build-system]
 requires = ["hatchling"]
