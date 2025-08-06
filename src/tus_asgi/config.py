@@ -3,7 +3,6 @@ Configuration settings for tus-asgi server.
 """
 
 from dataclasses import dataclass, field
-from typing import Set, Optional
 from datetime import timedelta
 
 
@@ -15,7 +14,7 @@ class TusConfig:
     version: str = "1.0.0"
 
     # Supported extensions
-    extensions: Set[str] = field(
+    extensions: set[str] = field(
         default_factory=lambda: {
             "creation",
             "creation-with-upload",
@@ -28,15 +27,15 @@ class TusConfig:
     )
 
     # Maximum upload size in bytes (None = unlimited)
-    max_size: Optional[int] = None
+    max_size: int | None = None
 
     # Supported checksum algorithms
-    checksum_algorithms: Set[str] = field(
+    checksum_algorithms: set[str] = field(
         default_factory=lambda: {"sha1", "md5", "sha256", "sha512", "crc32"}
     )
 
     # Default upload expiration time
-    upload_expires: Optional[timedelta] = field(
+    upload_expires: timedelta | None = field(
         default_factory=lambda: timedelta(days=7)
     )
 
@@ -47,7 +46,7 @@ class TusConfig:
     cors_enabled: bool = True
 
     # CORS origins (None = allow all)
-    cors_origins: Optional[Set[str]] = None
+    cors_origins: set[str] | None = None
 
     def get_supported_versions(self) -> str:
         """Get comma-separated list of supported versions."""

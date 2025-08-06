@@ -13,6 +13,20 @@ from ..config import TusConfig
 from ..storage import FileStorage
 
 
+def get_header_value(headers, header_name):
+    """Get header value with case-insensitive lookup."""
+    header_name_lower = header_name.lower()
+    for key, value in headers.items():
+        if key.decode().lower() == header_name_lower:
+            return value
+    return None
+
+
+def has_header(headers, header_name):
+    """Check if header exists with case-insensitive lookup."""
+    return get_header_value(headers, header_name) is not None
+
+
 @pytest_asyncio.fixture
 async def temp_storage():
     """Create temporary storage for testing."""
@@ -26,7 +40,7 @@ def tus_config():
     """Create test configuration."""
     return TusConfig(
         max_size=1024 * 1024,  # 1MB
-        extensions={"creation", "termination", "checksum"},
+        extensions={"creation", "creation-with-upload", "termination", "checksum"},
         checksum_algorithms={"sha1", "md5"},
     )
 
@@ -66,9 +80,9 @@ class TestTusCore:
 
         # Check headers
         headers = dict(start_msg["headers"])
-        assert b"tus-resumable" in headers
-        assert b"tus-version" in headers
-        assert b"tus-extension" in headers
+        assert has_header(headers, "tus-resumable")
+        assert has_header(headers, "tus-version")
+        assert has_header(headers, "tus-extension")
 
     async def test_create_upload(self, tus_app):
         """Test upload creation."""
@@ -101,8 +115,8 @@ class TestTusCore:
 
         # Check Location header
         headers = dict(start_msg["headers"])
-        assert b"location" in headers
-        location = headers[b"location"].decode()
+        assert has_header(headers, "location")
+        location = get_header_value(headers, "location").decode()
         assert location.startswith("/files/")
 
     async def test_head_request(self, tus_app, temp_storage):
@@ -133,10 +147,10 @@ class TestTusCore:
 
         # Check headers
         headers = dict(start_msg["headers"])
-        assert b"upload-offset" in headers
-        assert headers[b"upload-offset"] == b"0"
-        assert b"upload-length" in headers
-        assert headers[b"upload-length"] == b"100"
+        assert has_header(headers, "upload-offset")
+        assert get_header_value(headers, "upload-offset") == b"0"
+        assert has_header(headers, "upload-length")
+        assert get_header_value(headers, "upload-length") == b"100"
 
     async def test_patch_upload(self, tus_app, temp_storage):
         """Test PATCH request to upload data."""
@@ -176,7 +190,7 @@ class TestTusCore:
 
         # Check new offset
         headers = dict(start_msg["headers"])
-        assert headers[b"upload-offset"] == b"11"
+        assert get_header_value(headers, "upload-offset") == b"11"
 
         # Verify data was written
         stored_data = await temp_storage.read_chunk(upload_info.id, 0, 11)
@@ -208,7 +222,7 @@ class TestTusCore:
         assert start_msg["status"] == 412
 
         headers = dict(start_msg["headers"])
-        assert b"tus-version" in headers
+        assert has_header(headers, "tus-version")
 
     async def test_upload_not_found(self, tus_app):
         """Test request to non-existent upload."""
@@ -262,6 +276,7 @@ class TestTusCore:
         assert start_msg["status"] == 409
 
 
+@pytest.mark.asyncio(loop_scope="class")
 class TestTusExtensions:
     """Test tus protocol extensions."""
 
@@ -329,7 +344,7 @@ class TestTusExtensions:
         assert start_msg["status"] == 201
 
         headers = dict(start_msg["headers"])
-        assert headers[b"upload-offset"] == b"5"
+        assert get_header_value(headers, "upload-offset") == b"5"
 
 
 if __name__ == "__main__":
