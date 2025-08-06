@@ -35,9 +35,7 @@ class TusConfig:
     )
 
     # Default upload expiration time
-    upload_expires: timedelta | None = field(
-        default_factory=lambda: timedelta(days=7)
-    )
+    upload_expires: timedelta | None = field(default_factory=lambda: timedelta(days=7))
 
     # Upload URL pattern (for routing)
     upload_path: str = "/files"
