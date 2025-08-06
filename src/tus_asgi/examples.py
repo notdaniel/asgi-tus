@@ -4,6 +4,7 @@ Example applications showing how to use tus-asgi.
 
 from datetime import timedelta
 from pathlib import Path
+from typing import Optional, Dict, Any, List
 
 from starlette.middleware import Middleware
 
@@ -33,7 +34,7 @@ def create_basic_asgi_app(upload_dir: str = "/tmp/tus-uploads") -> TusASGIApp:
     return TusASGIApp(storage, config)
 
 
-def create_fastapi_app(upload_dir: str = "/tmp/tus-uploads"):
+def create_fastapi_app(upload_dir: str = "/tmp/tus-uploads") -> Any:
     """Create a FastAPI application with tus support.
 
     Example usage:
@@ -68,7 +69,7 @@ def create_fastapi_app(upload_dir: str = "/tmp/tus-uploads"):
     app.include_router(tus_router, tags=["uploads"])
 
     @app.get("/")
-    async def root():
+    async def root() -> Dict[str, str]:
         return {
             "message": "Tus resumable upload server",
             "upload_endpoint": "/files/",
@@ -76,13 +77,13 @@ def create_fastapi_app(upload_dir: str = "/tmp/tus-uploads"):
         }
 
     @app.get("/health")
-    async def health():
+    async def health() -> Dict[str, str]:
         return {"status": "healthy"}
 
     return app
 
 
-def create_starlette_app(upload_dir: str = "/tmp/tus-uploads"):
+def create_starlette_app(upload_dir: str = "/tmp/tus-uploads") -> Any:
     """Create a Starlette application with tus support.
 
     Example usage:
@@ -110,7 +111,7 @@ def create_starlette_app(upload_dir: str = "/tmp/tus-uploads"):
         cors_enabled=True,
     )
 
-    async def homepage(request):
+    async def homepage(request: Any) -> Any:
         return JSONResponse(
             {
                 "message": "Tus resumable upload server",
@@ -119,7 +120,7 @@ def create_starlette_app(upload_dir: str = "/tmp/tus-uploads"):
             }
         )
 
-    async def health(request):
+    async def health(request: Any) -> Any:
         return JSONResponse({"status": "healthy"})
 
     tus_mount = TusMount(storage, config, path="/files")
@@ -147,8 +148,8 @@ def create_production_fastapi_app(
     upload_dir: str,
     max_size: int = 1024 * 1024 * 1024,  # 1GB
     upload_expires_hours: int = 48,
-    cors_origins: list = None,
-):
+    cors_origins: Optional[List[str]] = None,
+) -> Any:
     """Create a production-ready FastAPI application with tus support.
 
     Args:
@@ -207,7 +208,7 @@ def create_production_fastapi_app(
     app.include_router(tus_router, tags=["uploads"])
 
     @app.get("/")
-    async def root():
+    async def root() -> Dict[str, Any]:
         return {
             "message": "Production Tus Upload Server",
             "upload_endpoint": "/uploads/",
@@ -216,11 +217,11 @@ def create_production_fastapi_app(
         }
 
     @app.get("/health")
-    async def health():
+    async def health() -> Dict[str, str]:
         return {"status": "healthy", "storage": "file"}
 
     @app.post("/cleanup")
-    async def cleanup_uploads(background_tasks: BackgroundTasks):
+    async def cleanup_uploads(background_tasks: Any) -> Dict[str, str]:
         """Clean up expired uploads."""
         background_tasks.add_task(storage.cleanup_expired_uploads)
         return {"message": "Cleanup task scheduled"}
@@ -229,7 +230,7 @@ def create_production_fastapi_app(
 
 
 # Example client usage
-def example_client_usage():
+def example_client_usage() -> str:
     """Example of how to use tus client with the server."""
     client_code = """
     # Example client code using tuspy (pip install tuspy)
@@ -249,7 +250,7 @@ def example_client_usage():
     )
     
     # Upload with progress callback
-    def progress_callback(bytes_uploaded, bytes_total):
+    def progress_callback(bytes_uploaded: int, bytes_total: int) -> None:
         percentage = (bytes_uploaded / bytes_total) * 100
         print(f"Upload progress: {percentage:.1f}%")
     

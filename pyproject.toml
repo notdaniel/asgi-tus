@@ -1,20 +1,40 @@
 [project]
 name = "tus-asgi"
 version = "0.1.0"
-description = "Add your description here"
-readme = "README.md"
-requires-python = ">=3.13"
-dependencies = [
-    "aiofiles>=24.1.0",
-    "fastapi[standard]>=0.116.1",
-    "httpx[http2]>=0.28.1",
-    "orjson>=3.11.1",
-    "rich>=14.1.0",
-    "starlette[full]>=0.47.2",
-    "structlog>=25.4.0",
-    "typer>=0.16.0",
-    "uvicorn[standard]>=0.35.0",
+description = "A Python ASGI implementation of the tus resumable upload protocol with FastAPI and Starlette integrations."
+authors = [
+    { name = "Daniel Keywan Hollister", email = "daniel.hollister@gmail.com" },
 ]
+license = { text = "MIT" }
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = ["aiofiles>=24.1.0", "orjson>=3.11.1", "structlog>=25.4.0"]
+keywords = ["tus", "upload", "resumable", "asgi", "fastapi", "starlette"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Framework :: AsyncIO",
+    "Framework :: FastAPI",
+    "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+[project.urls]
+Homepage = "https://github.com/notdaniel/tus-asgi"
+Repository = "https://github.com/notdaniel/tus-asgi"
+Issues = "https://github.com/notdaniel/tus-asgi/issues"
+Documentation = "https://github.com/notdaniel/tus-asgi#readme"
+
+[project.optional-dependencies]
+fastapi = ["fastapi[standard]>=0.116.1"]
+starlette = ["starlette[full]>=0.47.2"]
+server = ["uvicorn[standard]>=0.35.0"]
+all = ["tus-asgi[fastapi,starlette,server]"]
 
 [project.scripts]
 tus-asgi = "tus_asgi:main"
@@ -30,4 +50,5 @@ dev = [
     "pytest>=8.4.1",
     "pytest-asyncio>=1.1.0",
     "ruff>=0.12.7",
+    "types-aiofiles",
 ]

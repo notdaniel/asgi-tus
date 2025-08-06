@@ -4,7 +4,7 @@ Storage backend interface and implementations for tus-asgi.
 
 import uuid
 from abc import ABC, abstractmethod
-from typing import Optional, Dict
+from typing import Optional, Dict, List, Any
 from datetime import datetime, timezone
 from pathlib import Path
 import aiofiles
@@ -24,7 +24,7 @@ class UploadInfo:
         expires_at: Optional[datetime] = None,
         is_partial: bool = False,
         is_final: bool = False,
-        partial_uploads: Optional[list] = None,
+        partial_uploads: Optional[List[str]] = None,
         filename: Optional[str] = None,
         defer_length: bool = False,
     ):
@@ -65,7 +65,7 @@ class StorageBackend(ABC):
         defer_length: bool = False,
         is_partial: bool = False,
         is_final: bool = False,
-        partial_uploads: Optional[list] = None,
+        partial_uploads: Optional[List[str]] = None,
     ) -> UploadInfo:
         """Create a new upload."""
         pass
@@ -97,7 +97,7 @@ class StorageBackend(ABC):
 
     @abstractmethod
     async def concatenate_uploads(
-        self, final_upload_id: str, partial_upload_ids: list
+        self, final_upload_id: str, partial_upload_ids: List[str]
     ) -> bool:
         """Concatenate partial uploads into final upload."""
         pass
@@ -133,7 +133,7 @@ class FileStorage(StorageBackend):
         defer_length: bool = False,
         is_partial: bool = False,
         is_final: bool = False,
-        partial_uploads: Optional[list] = None,
+        partial_uploads: Optional[List[str]] = None,
     ) -> UploadInfo:
         """Create a new upload."""
         upload_id = str(uuid.uuid4()).replace("-", "")
@@ -164,7 +164,7 @@ class FileStorage(StorageBackend):
         info_path = self._get_info_path(upload_id)
         try:
             async with aiofiles.open(info_path, "r") as f:
-                data = orjson.loads(await f.read())
+                data: Dict[str, Any] = orjson.loads(await f.read())
 
                 # Parse datetime fields
                 created_at = None
@@ -255,7 +255,7 @@ class FileStorage(StorageBackend):
             return False
 
     async def concatenate_uploads(
-        self, final_upload_id: str, partial_upload_ids: list
+        self, final_upload_id: str, partial_upload_ids: List[str]
     ) -> bool:
         """Concatenate partial uploads into final upload."""
         final_path = self._get_upload_path(final_upload_id)
@@ -304,7 +304,7 @@ class FileStorage(StorageBackend):
 
         return count
 
-    async def _save_upload_info(self, upload_info: UploadInfo):
+    async def _save_upload_info(self, upload_info: UploadInfo) -> None:
         """Save upload info to disk."""
         info_path = self._get_info_path(upload_info.id)
 
@@ -325,4 +325,5 @@ class FileStorage(StorageBackend):
             data["expires_at"] = upload_info.expires_at.isoformat()
 
         async with aiofiles.open(info_path, "w") as f:
-            await f.write(orjson.dumps(data).decode())
+            encoded_data: bytes = orjson.dumps(data)
+            await f.write(encoded_data.decode("utf-8"))

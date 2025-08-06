@@ -5,7 +5,7 @@ Utility functions for tus-asgi.
 import re
 import hashlib
 import base64
-from typing import Dict, Optional, Tuple, Any
+from typing import Dict, Optional, Tuple, Any, List, Union
 from datetime import datetime, timezone
 import orjson
 import structlog
@@ -105,7 +105,7 @@ def decode_metadata_value(encoded_value: str) -> str:
         raise ValueError(f"Invalid metadata encoding: {e}")
 
 
-def parse_upload_concat(concat_header: str) -> Tuple[bool, bool, list]:
+def parse_upload_concat(concat_header: str) -> Tuple[bool, bool, List[str]]:
     """Parse Upload-Concat header.
 
     Returns:
@@ -181,8 +181,8 @@ def is_request_method_override(headers: Dict[bytes, bytes]) -> Optional[str]:
 class HeaderDict:
     """Case-insensitive header dictionary."""
 
-    def __init__(self, headers: list):
-        self._headers = {}
+    def __init__(self, headers: List[Tuple[Union[str, bytes], Union[str, bytes]]]):
+        self._headers: Dict[str, str] = {}
         for name, value in headers:
             key = name.decode().lower() if isinstance(name, bytes) else name.lower()
             val = value.decode() if isinstance(value, bytes) else value
@@ -205,7 +205,7 @@ def create_error_response_body(
     error_code: str, message: str, details: Optional[Dict[str, Any]] = None
 ) -> bytes:
     """Create JSON error response body."""
-    error_data = {
+    error_data: Dict[str, Any] = {
         "error": {
             "code": error_code,
             "message": message,
@@ -215,12 +215,15 @@ def create_error_response_body(
     if details:
         error_data["error"]["details"] = details
 
-    return orjson.dumps(error_data).encode()
+    return orjson.dumps(error_data)
 
 
 def log_upload_event(
-    event: str, upload_id: str, details: Optional[Dict[str, Any]] = None, logger=None
-):
+    event: str,
+    upload_id: str,
+    details: Optional[Dict[str, Any]] = None,
+    logger: Any = None,
+) -> None:
     """Log upload event for debugging/monitoring."""
     if logger:
         data = {

@@ -5,11 +5,17 @@ Core tus protocol ASGI application.
 import re
 import hashlib
 import base64
-from typing import Any
+from typing import Any, Optional, Callable, Awaitable
 from datetime import datetime, timezone
 
 from .config import TusConfig
 from .storage import StorageBackend
+
+# ASGI types
+Scope = dict[str, Any]
+Message = dict[str, Any]
+Receive = Callable[[], Awaitable[Message]]
+Send = Callable[[Message], Awaitable[None]]
 
 
 class TusError(Exception):
@@ -33,7 +39,9 @@ class TusProtocolError(TusError):
 class TusASGIApp:
     """Main tus ASGI application."""
 
-    def __init__(self, storage: StorageBackend, config: TusConfig | None = None):
+    def __init__(
+        self, storage: StorageBackend, config: Optional[TusConfig] = None
+    ) -> None:
         self.storage = storage
         self.config = config or TusConfig()
 
@@ -42,7 +50,7 @@ class TusASGIApp:
             rf"^{re.escape(self.config.upload_path)}/([a-zA-Z0-9]+)/?$"
         )
 
-    async def __call__(self, scope: dict[str, Any], receive, send):
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         """ASGI application entry point."""
         if scope["type"] != "http":
             await self._send_error(send, 404, "Not Found")
@@ -59,7 +67,7 @@ class TusASGIApp:
                 headers.update(self._get_cors_headers(scope))
             await self._send_response(send, 500, headers, b"Internal Server Error")
 
-    async def _handle_request(self, scope: dict[str, Any], receive, send):
+    async def _handle_request(self, scope: Scope, receive: Receive, send: Send) -> None:
         """Handle HTTP request."""
         method = scope["method"]
         path = scope["path"]
@@ -85,8 +93,8 @@ class TusASGIApp:
         raise TusError(404, "Not Found")
 
     async def _handle_upload_request(
-        self, method: str, upload_id: str, scope: dict[str, Any], receive, send
-    ):
+        self, method: str, upload_id: str, scope: Scope, receive: Receive, send: Send
+    ) -> None:
         """Handle requests to upload resources."""
         if method == "HEAD":
             await self._handle_head_request(upload_id, scope, receive, send)
@@ -101,7 +109,9 @@ class TusASGIApp:
                 405, "Method Not Allowed", {"Allow": "HEAD, PATCH, DELETE, OPTIONS"}
             )
 
-    async def _handle_options_request(self, scope: dict[str, Any], receive, send):
+    async def _handle_options_request(
+        self, scope: Scope, receive: Receive, send: Send
+    ) -> None:
         """Handle OPTIONS request for server capabilities."""
         headers = {
             "Tus-Resumable": self.config.version,
@@ -124,8 +134,8 @@ class TusASGIApp:
         await self._send_response(send, 204, headers)
 
     async def _handle_head_request(
-        self, upload_id: str, scope: dict[str, Any], receive, send
-    ):
+        self, upload_id: str, scope: Scope, receive: Receive, send: Send
+    ) -> None:
         """Handle HEAD request to get upload info."""
         await self._validate_tus_resumable(scope)
 
@@ -177,8 +187,8 @@ class TusASGIApp:
         await self._send_response(send, 200, headers)
 
     async def _handle_patch_request(
-        self, upload_id: str, scope: dict[str, Any], receive, send
-    ):
+        self, upload_id: str, scope: Scope, receive: Receive, send: Send
+    ) -> None:
         """Handle PATCH request to upload data."""
         headers_dict = dict(scope["headers"])
 
@@ -285,19 +295,21 @@ class TusASGIApp:
 
         await self._send_response(send, 204, response_headers)
 
-    async def _handle_creation_request(self, scope: dict[str, Any], receive, send):
+    async def _handle_creation_request(
+        self, scope: Scope, receive: Receive, send: Send
+    ) -> None:
         """Handle POST request to create new upload."""
         headers_dict = dict(scope["headers"])
 
         await self._validate_tus_resumable(scope)
 
         # Parse headers
-        upload_length = None
-        defer_length = False
-        metadata = {}
-        is_partial = False
-        is_final = False
-        partial_uploads = []
+        upload_length: Optional[int] = None
+        defer_length: bool = False
+        metadata: dict[str, str] = {}
+        is_partial: bool = False
+        is_final: bool = False
+        partial_uploads: list[str] = []
 
         # Handle Upload-Length or Upload-Defer-Length
         upload_length_header = headers_dict.get(b"upload-length")
@@ -414,8 +426,8 @@ class TusASGIApp:
         await self._send_response(send, 201, response_headers)
 
     async def _handle_upload_options_request(
-        self, upload_id: str, scope: dict[str, Any], receive, send
-    ):
+        self, upload_id: str, scope: Scope, receive: Receive, send: Send
+    ) -> None:
         """Handle OPTIONS request to upload resource for CORS preflight."""
         headers = {
             "Tus-Resumable": self.config.version,
@@ -428,8 +440,8 @@ class TusASGIApp:
         await self._send_response(send, 204, headers)
 
     async def _handle_delete_request(
-        self, upload_id: str, scope: dict[str, Any], receive, send
-    ):
+        self, upload_id: str, scope: Scope, receive: Receive, send: Send
+    ) -> None:
         """Handle DELETE request to terminate upload."""
         if not self.config.supports_extension("termination"):
             raise TusError(404, "Not Found")
@@ -452,7 +464,7 @@ class TusASGIApp:
 
         await self._send_response(send, 204, response_headers)
 
-    async def _validate_tus_resumable(self, scope: dict[str, Any]):
+    async def _validate_tus_resumable(self, scope: Scope) -> None:
         """Validate Tus-Resumable header."""
         headers_dict = dict(scope["headers"])
         tus_resumable = headers_dict.get(b"tus-resumable")
@@ -471,7 +483,7 @@ class TusASGIApp:
                 },
             )
 
-    async def _validate_checksum(self, data: bytes, checksum_header: str):
+    async def _validate_checksum(self, data: bytes, checksum_header: str) -> None:
         """Validate upload checksum."""
         try:
             algorithm, encoded_checksum = checksum_header.split(" ", 1)
@@ -518,7 +530,7 @@ class TusASGIApp:
 
     def _decode_metadata(self, metadata_header: str) -> dict[str, str]:
         """Decode metadata from Upload-Metadata header."""
-        metadata = {}
+        metadata: dict[str, str] = {}
         if not metadata_header.strip():
             return metadata
 
@@ -537,7 +549,7 @@ class TusASGIApp:
 
         return metadata
 
-    def _get_cors_headers(self, scope: dict[str, Any]) -> dict[str, str]:
+    def _get_cors_headers(self, scope: Scope) -> dict[str, str]:
         """Get CORS headers."""
         headers = {}
 
@@ -564,7 +576,7 @@ class TusASGIApp:
 
         return headers
 
-    async def _read_request_body(self, receive, content_length: int) -> bytes:
+    async def _read_request_body(self, receive: Receive, content_length: int) -> bytes:
         """Read request body."""
         body = b""
         while True:
@@ -584,11 +596,11 @@ class TusASGIApp:
 
     async def _send_response(
         self,
-        send,
+        send: Send,
         status_code: int,
-        headers: dict[str, str] | None = None,
+        headers: Optional[dict[str, str]] = None,
         body: bytes = b"",
-    ):
+    ) -> None:
         """Send HTTP response."""
         response_headers = []
         if headers:
@@ -610,13 +622,13 @@ class TusASGIApp:
             }
         )
 
-    async def _send_error(self, send, status_code: int, message: str):
+    async def _send_error(self, send: Send, status_code: int, message: str) -> None:
         """Send error response."""
         await self._send_response(send, status_code, body=message.encode())
 
     async def _send_tus_error(
-        self, send, error: TusError, scope: dict[str, Any] = None
-    ):
+        self, send: Send, error: TusError, scope: Optional[Scope] = None
+    ) -> None:
         """Send tus protocol error response."""
         headers = {"Tus-Resumable": self.config.version}
         headers.update(error.headers)

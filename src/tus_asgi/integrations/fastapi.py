@@ -2,7 +2,7 @@
 FastAPI integration for tus-asgi.
 """
 
-from typing import Optional
+from typing import Optional, List, Dict, Any, Tuple, Callable, Awaitable
 from fastapi import APIRouter, Request, Response
 from fastapi.responses import Response as FastAPIResponse
 
@@ -19,7 +19,7 @@ class TusFastAPIRouter:
         storage: StorageBackend,
         config: Optional[TusConfig] = None,
         prefix: str = "/files",
-    ):
+    ) -> None:
         self.storage = storage
         self.config = config or TusConfig()
         self.config.upload_path = prefix
@@ -59,7 +59,7 @@ class TusFastAPIRouter:
         # Create custom receive callable for the request body
         body_sent = False
 
-        async def receive():
+        async def receive() -> Dict[str, Any]:
             nonlocal body_sent
             if not body_sent:
                 body_sent = True
@@ -74,10 +74,10 @@ class TusFastAPIRouter:
         # Prepare response data
         response_started = False
         status_code = 200
-        headers = []
-        body_parts = []
+        headers: List[Tuple[bytes, bytes]] = []
+        body_parts: List[bytes] = []
 
-        async def send(message):
+        async def send(message: Dict[str, Any]) -> None:
             nonlocal response_started, status_code, headers, body_parts
 
             if message["type"] == "http.response.start":
@@ -103,7 +103,7 @@ class TusFastAPIRouter:
         await self.tus_app(scope, receive, send)
 
         # Build response
-        response_headers = {}
+        response_headers: Dict[str, str] = {}
         for header_pair in headers:
             name = header_pair[0].decode()
             value = header_pair[1].decode()

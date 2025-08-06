@@ -2,13 +2,14 @@
 Starlette integration for tus-asgi.
 """
 
-from typing import Optional
+from typing import Optional, List, Dict, Any, Tuple, Union, Type
 
 from starlette.applications import Starlette
 from starlette.routing import Route, Mount
 from starlette.requests import Request
 from starlette.responses import Response
 from starlette.middleware import Middleware
+from starlette.types import ASGIApp
 
 from ..core import TusASGIApp
 from ..config import TusConfig
@@ -22,21 +23,23 @@ class TusStarletteApp:
         self,
         storage: StorageBackend,
         config: Optional[TusConfig] = None,
-        middleware: Optional[list] = None,
-    ):
+        middleware: Optional[
+            List[Union[Type[Any], Tuple[Type[Any], Dict[str, Any]]]]
+        ] = None,
+    ) -> None:
         self.storage = storage
         self.config = config or TusConfig()
         self.tus_app = TusASGIApp(storage, self.config)
 
         # Create Starlette app
-        middleware_list = []
+        middleware_list: List[Middleware] = []
         if middleware:
             for mw in middleware:
                 if isinstance(mw, tuple):
                     mw_cls, mw_kwargs = mw
-                    middleware_list.append(Middleware(mw_cls, **mw_kwargs))
+                    middleware_list.append(Middleware(mw_cls, **mw_kwargs))  # type: ignore[arg-type]
                 else:
-                    middleware_list.append(Middleware(mw))
+                    middleware_list.append(Middleware(mw))  # type: ignore[arg-type]
 
         self.app = Starlette(
             routes=[
@@ -72,7 +75,7 @@ class TusStarletteApp:
         # Create custom receive callable for the request body
         body_sent = False
 
-        async def receive():
+        async def receive() -> Dict[str, Any]:
             nonlocal body_sent
             if not body_sent:
                 body_sent = True
@@ -87,10 +90,10 @@ class TusStarletteApp:
         # Prepare response data
         response_started = False
         status_code = 200
-        headers = []
-        body_parts = []
+        headers: List[Tuple[bytes, bytes]] = []
+        body_parts: List[bytes] = []
 
-        async def send(message):
+        async def send(message: Dict[str, Any]) -> None:
             nonlocal response_started, status_code, headers, body_parts
 
             if message["type"] == "http.response.start":
@@ -107,7 +110,7 @@ class TusStarletteApp:
         await self.tus_app(scope, receive, send)
 
         # Build response
-        response_headers = {}
+        response_headers: Dict[str, str] = {}
         for header_pair in headers:
             name = header_pair[0].decode()
             value = header_pair[1].decode()
@@ -125,7 +128,9 @@ class TusStarletteApp:
 def create_tus_app(
     storage: StorageBackend,
     config: Optional[TusConfig] = None,
-    middleware: Optional[list] = None,
+    middleware: Optional[
+        List[Union[Type[Any], Tuple[Type[Any], Dict[str, Any]]]]
+    ] = None,
 ) -> Starlette:
     """Create a Starlette app for tus protocol.
 
@@ -159,7 +164,7 @@ class TusMount:
         storage: StorageBackend,
         config: Optional[TusConfig] = None,
         path: str = "/files",
-    ):
+    ) -> None:
         self.storage = storage
         self.config = config or TusConfig()
         self.config.upload_path = ""  # Reset since we're mounting at a path
@@ -184,4 +189,4 @@ class TusMount:
             ])
             ```
         """
-        return Mount(self.path, app=self.tus_app)
+        return Mount(self.path, app=self.tus_app)  # type: ignore[arg-type]

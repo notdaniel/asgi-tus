@@ -11,8 +11,6 @@ This package provides:
 from .core import TusASGIApp
 from .config import TusConfig
 from .storage import StorageBackend, FileStorage
-from .integrations.fastapi import TusFastAPIRouter, create_tus_router
-from .integrations.starlette import TusStarletteApp, create_tus_app, TusMount
 
 __version__ = "0.1.0"
 __all__ = [
@@ -26,3 +24,28 @@ __all__ = [
     "create_tus_app",
     "TusMount",
 ]
+
+try:
+    from .integrations.fastapi import TusFastAPIRouter, create_tus_router
+
+    __all__.extend(
+        [
+            "TusFastAPIRouter",
+            "create_tus_router",
+        ]
+    )
+except ImportError:
+    pass
+
+try:
+    from .integrations.starlette import TusStarletteApp, create_tus_app, TusMount
+
+    __all__.extend(
+        [
+            "TusStarletteApp",
+            "create_tus_app",
+            "TusMount",
+        ]
+    )
+except ImportError:
+    pass
